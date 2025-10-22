@@ -1,0 +1,129 @@
+# Ingress for external HTTP/HTTPS access
+# Ingress provides HTTP routing to services based on hostnames and paths
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskmanager-api-ingress
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: ingress
+  annotations:
+    # Ingress class (depends on your cluster setup)
+    kubernetes.io/ingress.class: "nginx"
+    # Alternative for newer Kubernetes versions:
+    # ingressClassName: nginx
+    
+    # SSL/TLS configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # NGINX-specific annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    
+    # CORS configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
+    
+    # Health check configuration
+    nginx.ingress.kubernetes.io/health-check-path: "/api/health/live"
+    
+    # Load balancing
+    nginx.ingress.kubernetes.io/load-balance: "round_robin"
+spec:
+  # TLS configuration
+  tls:
+  - hosts:
+    - api.taskmanager.example.com
+    secretName: taskmanager-api-tls
+  
+  # Routing rules
+  rules:
+  - host: api.taskmanager.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: taskmanager-api-service
+            port:
+              number: 80
+      
+      # Optional: Separate path for health checks
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: taskmanager-api-service
+            port:
+              number: 80
+
+---
+# Alternative: Simple Ingress without TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskmanager-api-ingress-simple
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: ingress-simple
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: taskmanager.local  # Add this to your /etc/hosts for local testing
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: taskmanager-api-service
+            port:
+              number: 80
+
+---
+# Ingress for multiple environments
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskmanager-api-ingress-multi
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: ingress-multi
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      # Production API
+      - path: /prod(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: taskmanager-api-service
+            port:
+              number: 80
+      
+      # Staging API (if you have staging deployment)
+      # - path: /staging(/|$)(.*)
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: taskmanager-api-service-staging
+      #       port:
+      #         number: 80

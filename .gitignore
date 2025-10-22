@@ -1,0 +1,268 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Temporary folders
+tmp/
+temp/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+!docker-compose.dev.yml
+
+# Kubernetes secrets (if any local ones are created)
+k8s/secrets/
+k8s/*-secret.yaml
+!k8s/secret.yaml
+
+# Local Kubernetes configs
+kubeconfig
+*.kubeconfig
+.kube/
+
+# Helm
+charts/*/charts/
+charts/*/requirements.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.lnk
+
+# Linux
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test artifacts
+test-results/
+coverage/
+.nyc_output/
+
+# Build artifacts
+build/
+dist/
+out/
+
+# Local development files
+local/
+dev/
+development/
+
+# Monitoring and observability
+prometheus/
+grafana/
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Vagrant (if used)
+.vagrant/
+
+# Local scripts that shouldn't be committed
+local-*.sh
+dev-*.sh
+test-local-*.sh
+
+# Package manager lock files (choose one strategy)
+# Uncomment the next line if you want to ignore package-lock.json
+# package-lock.json
+
+# Yarn
+# yarn.lock
+
+# PNPM
+# pnpm-lock.yaml
+
+# Local configuration overrides
+config/local.json
+config/local.js
+config/local.yaml
+config/local.yml
+
+# Performance monitoring
+.clinic/
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Jest cache
+.jest/
+
+# Local development databases
+postgres-data/
+mysql-data/
+mongodb-data/
+
+# Load testing results
+load-test-results/
+performance-results/
+
+# Local kind cluster config (if customized)
+kind-cluster-config.yaml
+
+# Minikube
+.minikube/
+
+# Local Docker registry
+registry-data/
+
+# Backup and temporary files
+*.tmp
+*.temp
+*.backup
+
+# Application specific
+uploads/
+downloads/
+cache/
+sessions/
+
+# Documentation build
+docs/_build/
+docs/site/
+
+# Local development overrides
+docker-compose.local.yml
+k8s/local/
+manifests/local/

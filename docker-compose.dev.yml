@@ -1,0 +1,24 @@
+# Docker Compose override for development
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  api:
+    build:
+      target: builder  # Use builder stage for development
+    environment:
+      NODE_ENV: development
+    volumes:
+      # Mount source code for hot reloading
+      - ./src:/app/src:ro
+      - ./package*.json:/app/
+    command: ["npm", "run", "dev"]  # Use nodemon for development
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugger port
+
+  postgres:
+    environment:
+      # Less secure password for development
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"

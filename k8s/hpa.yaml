@@ -1,0 +1,103 @@
+# Horizontal Pod Autoscaler (HPA)
+# Automatically scales the number of pods based on CPU/memory utilization
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: taskmanager-api-hpa
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: autoscaler
+spec:
+  # Target deployment to scale
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmanager-api-deployment
+  
+  # Scaling boundaries
+  minReplicas: 2    # Minimum number of pods
+  maxReplicas: 10   # Maximum number of pods
+  
+  # Scaling metrics
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Scale up when average CPU > 70%
+  
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # Scale up when average memory > 80%
+  
+  # Custom metrics (example - requires metrics server)
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: http_requests_per_second
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "100"
+  
+  # Scaling behavior (v2 feature)
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60  # Wait 60s before scaling up again
+      policies:
+      - type: Percent
+        value: 100    # Scale up by 100% (double) at most
+        periodSeconds: 60
+      - type: Pods
+        value: 2      # Or add 2 pods at most
+        periodSeconds: 60
+      selectPolicy: Min  # Use the more conservative policy
+    
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
+      policies:
+      - type: Percent
+        value: 50     # Scale down by 50% at most
+        periodSeconds: 60
+      - type: Pods
+        value: 1      # Or remove 1 pod at most
+        periodSeconds: 60
+      selectPolicy: Min  # Use the more conservative policy
+
+---
+# Vertical Pod Autoscaler (VPA) - Optional
+# Automatically adjusts CPU and memory requests/limits
+# Note: VPA and HPA should not target the same metrics
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: taskmanager-api-vpa
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: vpa
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmanager-api-deployment
+  
+  updatePolicy:
+    updateMode: "Auto"  # Auto, Initial, Off
+  
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 512Mi
+      controlledResources: ["cpu", "memory"]

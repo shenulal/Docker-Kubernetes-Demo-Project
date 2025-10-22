@@ -1,0 +1,152 @@
+# Task Management API Deployment
+# This demonstrates a typical stateless application deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmanager-api-deployment
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: backend
+    version: v1
+spec:
+  # Number of pod replicas
+  replicas: 3
+  
+  # Deployment strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1      # Max pods that can be unavailable during update
+      maxSurge: 1           # Max pods that can be created above desired replicas
+  
+  # Selector to match pods
+  selector:
+    matchLabels:
+      app: task-management-api
+      component: backend
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: task-management-api
+        component: backend
+        version: v1
+      annotations:
+        # Prometheus scraping annotations (if using Prometheus)
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      
+      # Init containers (run before main containers)
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Waiting for PostgreSQL to be ready..."
+          until nc -z postgres-service 5432; do
+            echo "PostgreSQL is not ready yet..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+      
+      containers:
+      - name: api
+        image: taskmanager-api:latest  # Replace with your actual image
+        imagePullPolicy: Always        # Use IfNotPresent for production
+        
+        # Resource requests and limits
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"      # 0.1 CPU cores
+          limits:
+            memory: "256Mi"
+            cpu: "200m"      # 0.2 CPU cores
+        
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: taskmanager-config
+        
+        # Environment variables from Secret
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: DB_PASSWORD
+        
+        # Container ports
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        
+        # Liveness probe - checks if container is alive
+        livenessProbe:
+          httpGet:
+            path: /api/health/live
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Readiness probe - checks if container is ready to serve traffic
+        readinessProbe:
+          httpGet:
+            path: /api/health/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # Startup probe - gives container more time to start up
+        startupProbe:
+          httpGet:
+            path: /api/health/live
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 10
+        
+        # Security context for container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts for temporary files (since root filesystem is read-only)
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/.npm
+      
+      # Volumes
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      
+      # Pod disruption budget considerations
+      # Restart policy
+      restartPolicy: Always
+      
+      # DNS policy
+      dnsPolicy: ClusterFirst

@@ -1,0 +1,33 @@
+# Persistent Volume Claim for PostgreSQL data
+# PVCs request storage resources from the cluster
+# This ensures data persists even if pods are deleted/recreated
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: storage
+spec:
+  # Access mode defines how the volume can be mounted
+  # ReadWriteOnce: volume can be mounted as read-write by a single node
+  # ReadOnlyMany: volume can be mounted read-only by many nodes
+  # ReadWriteMany: volume can be mounted as read-write by many nodes
+  accessModes:
+    - ReadWriteOnce
+  
+  # Storage class defines the type of storage
+  # Leave empty to use default storage class
+  # Common options: gp2 (AWS), standard (GKE), managed-premium (Azure)
+  storageClassName: ""  # Uses default storage class
+  
+  # Resource request
+  resources:
+    requests:
+      storage: 10Gi  # Request 10GB of storage
+  
+  # Optional: Volume selector to bind to specific PV
+  # selector:
+  #   matchLabels:
+  #     type: postgres-storage

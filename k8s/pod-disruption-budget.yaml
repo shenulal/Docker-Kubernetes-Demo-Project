@@ -1,0 +1,52 @@
+# Pod Disruption Budget (PDB)
+# Ensures minimum number of pods remain available during voluntary disruptions
+# (node maintenance, cluster upgrades, etc.)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmanager-api-pdb
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: availability
+spec:
+  # Selector to match pods
+  selector:
+    matchLabels:
+      app: task-management-api
+      component: backend
+  
+  # Disruption policy - choose one:
+  # Option 1: Minimum available pods
+  minAvailable: 2
+  
+  # Option 2: Maximum unavailable pods (alternative to minAvailable)
+  # maxUnavailable: 1
+  
+  # Option 3: Percentage-based (alternative)
+  # minAvailable: "50%"
+  # maxUnavailable: "25%"
+
+---
+# Pod Disruption Budget for PostgreSQL
+# Since we only have 1 replica, we need to be careful with disruptions
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres-pdb
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: availability
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+      component: database
+  
+  # For single-replica databases, we can't guarantee availability during disruptions
+  # But we can control when disruptions happen
+  minAvailable: 1
+  
+  # Alternative: Allow disruptions but with careful planning
+  # maxUnavailable: 0  # Prevents voluntary disruptions

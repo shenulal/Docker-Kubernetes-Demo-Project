@@ -1,0 +1,112 @@
+# PostgreSQL Deployment
+# Deployment manages a set of identical pods and ensures desired state
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: database
+spec:
+  # Single replica for database (stateful workload)
+  # For production, consider StatefulSet for databases
+  replicas: 1
+  
+  # Deployment strategy
+  strategy:
+    type: Recreate  # Recreate strategy for databases to avoid data corruption
+  
+  # Selector to match pods
+  selector:
+    matchLabels:
+      app: postgres
+      component: database
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+    spec:
+      # Security context for the pod
+      securityContext:
+        fsGroup: 999  # PostgreSQL group ID
+      
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        
+        # Resource requests and limits
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Environment variables from ConfigMap and Secret
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: taskmanager-secrets
+              key: POSTGRES_PASSWORD
+        
+        # Container port
+        ports:
+        - containerPort: 5432
+          name: postgres
+          protocol: TCP
+        
+        # Volume mounts
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres  # Avoid mounting to root of volume
+        
+        # Liveness probe - checks if container is alive
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+            - -d
+            - taskmanager
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Readiness probe - checks if container is ready to serve traffic
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+            - -d
+            - taskmanager
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      
+      # Volumes
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc

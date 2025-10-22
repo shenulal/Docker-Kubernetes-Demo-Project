@@ -1,0 +1,87 @@
+# Task Management API Service
+# This exposes the API pods and provides load balancing
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmanager-api-service
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: backend
+spec:
+  # Service type - ClusterIP for internal access
+  type: ClusterIP
+  
+  # Selector to match API pods
+  selector:
+    app: task-management-api
+    component: backend
+  
+  # Ports
+  ports:
+  - name: http
+    port: 80          # Service port
+    targetPort: 3000  # Container port
+    protocol: TCP
+  
+  # Session affinity (optional)
+  # sessionAffinity: ClientIP
+
+---
+# NodePort Service for external access (alternative to LoadBalancer)
+# Use this if you don't have a cloud load balancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmanager-api-nodeport
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: backend
+    service-type: nodeport
+spec:
+  type: NodePort
+  selector:
+    app: task-management-api
+    component: backend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    nodePort: 30080  # External port (30000-32767 range)
+    protocol: TCP
+
+---
+# LoadBalancer Service for cloud environments
+# This will create an external load balancer (AWS ELB, GCP LB, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmanager-api-loadbalancer
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: backend
+    service-type: loadbalancer
+  annotations:
+    # Cloud-specific annotations
+    # AWS
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # GCP
+    # cloud.google.com/load-balancer-type: "External"
+    # Azure
+    # service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+spec:
+  type: LoadBalancer
+  selector:
+    app: task-management-api
+    component: backend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  # Optional: Specify load balancer source ranges
+  # loadBalancerSourceRanges:
+  # - 10.0.0.0/8

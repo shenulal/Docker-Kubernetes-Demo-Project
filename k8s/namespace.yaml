@@ -1,0 +1,13 @@
+# Kubernetes Namespace
+# Namespaces provide a way to divide cluster resources between multiple users
+# They're like virtual clusters within a physical cluster
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: taskmanager
+  labels:
+    name: taskmanager
+    environment: production
+    app: task-management-api
+  annotations:
+    description: "Task Management API namespace for Docker & Kubernetes learning"

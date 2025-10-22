@@ -1,0 +1,48 @@
+# ConfigMap stores non-confidential configuration data
+# This separates configuration from application code
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskmanager-config
+  namespace: taskmanager
+  labels:
+    app: task-management-api
+    component: config
+data:
+  # Application configuration
+  NODE_ENV: "production"
+  PORT: "3000"
+  
+  # Database configuration (non-sensitive)
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "taskmanager"
+  DB_USER: "postgres"
+  
+  # Logging configuration
+  LOG_LEVEL: "info"
+  
+  # API configuration
+  API_RATE_LIMIT: "100"
+  API_RATE_WINDOW: "900000"  # 15 minutes in milliseconds
+
+---
+# ConfigMap for PostgreSQL configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: config
+data:
+  POSTGRES_DB: "taskmanager"
+  POSTGRES_USER: "postgres"
+  # PostgreSQL performance tuning
+  shared_buffers: "256MB"
+  effective_cache_size: "1GB"
+  maintenance_work_mem: "64MB"
+  checkpoint_completion_target: "0.9"
+  wal_buffers: "16MB"
+  default_statistics_target: "100"

@@ -1,0 +1,52 @@
+# PostgreSQL Service
+# Services provide stable network endpoints for pods
+# This creates a DNS name that other pods can use to connect to PostgreSQL
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: database
+spec:
+  # Service type
+  # ClusterIP: Only accessible within cluster (default)
+  # NodePort: Accessible from outside cluster via node IP:port
+  # LoadBalancer: Cloud provider creates external load balancer
+  type: ClusterIP
+  
+  # Selector to match pods
+  selector:
+    app: postgres
+    component: database
+  
+  # Ports
+  ports:
+  - name: postgres
+    port: 5432        # Service port
+    targetPort: 5432  # Container port
+    protocol: TCP
+
+---
+# Optional: Headless service for direct pod access
+# Useful for StatefulSets or when you need to connect to specific pods
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: taskmanager
+  labels:
+    app: postgres
+    component: database
+spec:
+  type: ClusterIP
+  clusterIP: None  # Makes it headless
+  selector:
+    app: postgres
+    component: database
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
