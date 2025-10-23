@@ -108,7 +108,7 @@ kind create cluster --config=kind-config.yaml
 ### 1. Clone and Setup
 ```bash
 git clone https://github.com/shenulal/Docker-Kubernetes-Demo-Project.git
-cd docker-kubernetes-poc
+cd Docker-Kubernetes-Demo-Project
 
 # Copy environment file
 cp .env.example .env
